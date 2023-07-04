@@ -1,3 +1,7 @@
+import wget, os, shutil
+
+IMAGES_FOLDER = "images"
+
 # Remove and then publish each listing
 def update_listings(listings, type, scraper):
 	# If listings are empty stop the function
@@ -41,7 +45,8 @@ def publish_listing(data, listing_type, scraper):
 	scraper.element_click('a[href="/marketplace/create/' + listing_type + '/"]')
 
 	# Create string that contains all of the image paths separeted by \n
-	images_path = generate_multiple_images_path(data['Photos Folder'], data['Photos Names'])
+	images_path = generate_multiple_images_path(data['Photos URLs'], data['Photos Folder'], data['Photos Names'])
+
 	# Add images to the the listing
 	scraper.input_file_add_files('input[accept="image/*,image/heif,image/heic"]', images_path)
 
@@ -70,27 +75,36 @@ def publish_listing(data, listing_type, scraper):
 		post_listing_to_multiple_groups(data, listing_type, scraper)
 
 
-def generate_multiple_images_path(path, images):
-	# Last character must be '/' because after that we are adding the name of the image
-	if path[-1] != '/':
-		path += '/'
-
+def generate_multiple_images_path(urls, path, images):
+	PATHS_SEPARATOR = '\n'
 	images_path = ''
 
-	# Split image names into array by this symbol ";"
-	image_names = images.split(';')
+	if urls:
+		if os.path.exists(IMAGES_FOLDER):
+			shutil.rmtree(IMAGES_FOLDER)
 
-	# Create string that contains all of the image paths separeted by \n
-	if image_names:
-		for image_name in image_names:
-			# Remove whitespace before and after the string
-			image_name = image_name.strip()
+		os.mkdir(IMAGES_FOLDER)
 
-			# Add "\n" for indicating new file
-			if images_path != '':
-				images_path += '\n'
+		images_path = PATHS_SEPARATOR.join(list(map(lambda url: os.path.abspath(wget.download(url, out=IMAGES_FOLDER)), urls.split("|"))))
+	else:
+		# Last character must be '/' because after that we are adding the name of the image
+		if path[-1] != '/':
+			path += '/'
 
-			images_path += path + image_name
+		# Split image names into array by this symbol ";"
+		image_names = images.split(';')
+
+		# Create string that contains all of the image paths separeted by \n
+		if image_names:
+			for image_name in image_names:
+				# Remove whitespace before and after the string
+				image_name = image_name.strip()
+
+				# Add "\n" for indicating new file
+				if images_path != '':
+					images_path += PATHS_SEPARATOR
+
+				images_path += path + image_name
 
 	return images_path
 
@@ -163,7 +177,8 @@ def add_listing_to_multiple_groups(data, scraper):
 		# Remove whitespace before and after the name
 		group_name = group_name.strip()
 
-		scraper.element_click_by_xpath('//span[text()="' + group_name + '"]')
+		if group_name:
+			scraper.element_click_by_xpath('//span[text()="' + group_name + '"]')
 
 def post_listing_to_multiple_groups(data, listing_type, scraper):
 	title = generate_title_for_listing_type(data, listing_type)
