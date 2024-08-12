@@ -79,7 +79,7 @@ def publish_listing(data, listing_type, scraper):
 	scraper.find_element('input[placeholder="Search your listings"]', False)
 
 	# if not next_button:
-	post_listing_to_multiple_groups(data, listing_type, scraper)
+	#post_listing_to_multiple_groups(data, listing_type, scraper)
 
 
 def generate_multiple_images_path(urls, path, images):

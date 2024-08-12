@@ -62,3 +62,14 @@ Facebook marketplace bot that automatically removes and then uploads listings fr
         python3 main.py
         ```
 7. The first time that you use the program, you will have to log in manually in the browser that have opened. After that the program will log in you automatically using the cookies from the first log in.
+
+
+## Troubleshooting
+### Fails with error `AttributeError: 'Scraper' object has no attribute 'driver'`
+An incorrect Selenium Chrome driver version being used. Try forcing a specific webdriver version by adding it in [scraper.py](helpers/scraper.py#L55) (around L55):
+
+```python
+chrome_driver_path = ChromeDriverManager("127.0.6533.100").install()
+```
+
+Rerun the script. If it complains about the driver version being different from the browser version, copy the browser version from the error message and try that in scraper.py.
